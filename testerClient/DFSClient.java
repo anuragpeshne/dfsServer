@@ -10,7 +10,7 @@ public class DFSClient implements Runnable {
 	public void run() {
 		Socket connectSock = null;
 		try {
-			connectSock = new Socket("127.0.0.1", 8080);
+			connectSock = new Socket("10.0.0.2", 8080);
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		} catch (IOException e) {

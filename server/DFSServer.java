@@ -6,7 +6,7 @@ import java.net.Socket;
 
 
 public class DFSServer implements Runnable {
-
+	public static final String serverRoot = System.getProperty("user.home") + "/DFSRoot/";
 	public void run() {
 		ServerSocket listenSocket = null;
 		try {
