@@ -1,12 +1,36 @@
 package server;
+
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 
-public class DFSServer implements Runnable {
+public class Server {
 	public static final String serverRoot = System.getProperty("user.home") + "/DFSRoot/";
+	
+	public void init() {
+		Server.createFS();
+		Authenticator.init();
+	}
+	
+	private static void createFS() {
+		File DFSRoot = new File(System.getProperty("user.home") + "/DFSRoot/");
+		if(!DFSRoot.exists()) {
+			DFSRoot.mkdir();
+			File filesDir = new File(serverRoot + "Files/");
+			filesDir.mkdir();
+			
+			File usersDir = new File(serverRoot + "Users/");
+			usersDir.mkdir();
+			
+			File permDir = new File(serverRoot + "perms/");
+			permDir.mkdir();
+		}
+	}
+	
+	/*
 	public void run() {
 		ServerSocket listenSocket = null;
 		try {
@@ -32,6 +56,5 @@ public class DFSServer implements Runnable {
 			writer.close();
 		}
 		//listenSocket.close();
-	}
-
+	}*/
 }
