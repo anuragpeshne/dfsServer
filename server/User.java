@@ -9,6 +9,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class User {
 	private String username;
@@ -45,6 +46,7 @@ public class User {
 			while(ip != null) {
 				String[] file = ip.split("\t");
 				this.concernedFiles.put(file[0], Integer.parseInt(file[1]));
+				ip = userFile.readLine();
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -71,6 +73,7 @@ public class User {
 				userFile.createNewFile();
 				RandomAccessFile userRF = new RandomAccessFile(userFile, "rw");
 				userRF.writeBytes(User.hashPswd(pswd) + "\n");
+				retUser = new User(username, hashPswd(pswd), userRF);
 				userRF.close();
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -80,6 +83,7 @@ public class User {
 	}
 	public void addPermission(String fileName, int perm) {
 		this.concernedFiles.put(fileName, perm);
+		PermManager.addPermission(fileName, this.username, perm);
 	}
 	public void writeToDisk() {
 		File userFOld = new File(Server.serverRoot + "Users/" + this.username);
@@ -89,7 +93,7 @@ public class User {
 			userF.createNewFile();
 			RandomAccessFile userRF = new RandomAccessFile(userF, "rw");
 			userRF.writeBytes(this.pswdHash + "\n");
-			Iterator navi = this.concernedFiles.entrySet().iterator();
+			Iterator<Entry<String, Integer>> navi = this.concernedFiles.entrySet().iterator();
 			while(navi.hasNext()) {
 				Map.Entry<String, Integer> pairs = (Map.Entry<String, Integer>)navi.next();
 		        userRF.writeBytes(pairs.getKey() + "\t" + pairs.getValue() + "\n");
