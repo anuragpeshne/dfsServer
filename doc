@@ -1,0 +1,16 @@
+Requests:
+CONNECT username password			//Authenticate -> Add entry to Server Table -> return TOKEN
+PING								//Heart beat to keep itself in table (table is LRU)
+GET filename TOKEN
+PUT filename TOKEN
+
+Response:
+200								//OK
+201								//Created
+
+
+401								//Unauthorized: invalid username or password
+403								//Forbidden
+404								//Not found
+
+501								//Not Implemented. The server either does not recognize the request method, or it lacks the ability to fulfill the request

@@ -22,7 +22,7 @@ public class User {
 			try {
 				RandomAccessFile userRF = new RandomAccessFile(userFile, "r");
 				String passwordHash = userRF.readLine();
-				String enteredHash = hashPswd(pswd); 
+				String enteredHash = hashIt(pswd); 
 				if(passwordHash.compareTo(enteredHash) == 0) {
 					retVal = new User(username, passwordHash, userRF);
 					userRF.close();
@@ -55,7 +55,7 @@ public class User {
 	public String getUsername() {
 		return this.username;
 	}
-	private static String hashPswd(String input) {
+	public static String hashIt(String input) {
 		byte[] hash = null;
 		try {
 			MessageDigest md = MessageDigest.getInstance("MD5");
@@ -72,8 +72,8 @@ public class User {
 			try {
 				userFile.createNewFile();
 				RandomAccessFile userRF = new RandomAccessFile(userFile, "rw");
-				userRF.writeBytes(User.hashPswd(pswd) + "\n");
-				retUser = new User(username, hashPswd(pswd), userRF);
+				userRF.writeBytes(User.hashIt(pswd) + "\n");
+				retUser = new User(username, hashIt(pswd), userRF);
 				userRF.close();
 			} catch (IOException e) {
 				e.printStackTrace();

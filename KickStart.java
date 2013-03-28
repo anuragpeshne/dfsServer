@@ -11,9 +11,9 @@ public class KickStart {
 		Thread serverDaemon = new Thread(server);
 		serverDaemon.start();
 		
-		DFSClient testerClient = new DFSClient();
+		/*DFSClient testerClient = new DFSClient();
 		Thread client = new Thread(testerClient);
-		client.start();
+		client.start();*/
 	}
 	
 }
