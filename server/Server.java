@@ -28,6 +28,7 @@ public class Server {
 		BufferedReader reader;
 		PrintWriter writer;
 		Socket sock;
+		String clientUsername;
 		
 		public ClientHandler(Socket clientSocket) {
 			this.sock = clientSocket;
@@ -45,62 +46,68 @@ public class Server {
 		public void run() {
 			String inMsg, outMsg = "501";				//501: Not Implemented
 			try {
-				inMsg = reader.readLine();
-				String[] req = inMsg.split(" "); 
-				outMsg = req[0];
-				if(req[0].compareTo("CONNECT") == 0) {
-					String response = Server.this.authenticateUser(req[1], req[2]);
-					if(response != null)
-						outMsg += " 200 " + response;		//200: OK
-					else
-						outMsg += " 401";					//401: Unauthorized
-					writer.println(outMsg);
-				}
-				else if(req[0].compareTo("PING") == 0) {
-					//implement ??
-				}
-				else if(req[0].compareTo("GET") == 0) {
-					User tempUser = userTable.get(req[1]);
-					if(tempUser == null)
-						outMsg += " 401";
-					else {
-						String response = tempUser.getFile(req[2]);
-						response += "$$FILEEND$$";
-						outMsg += " 200";
+				while( (inMsg = reader.readLine()) != null) {
+					String[] req = inMsg.split(" "); 
+					outMsg = req[0];
+					if(req[0].compareTo("CONNECT") == 0) {
+						this.clientUsername = req[1];
+						String response = Server.this.authenticateUser(req[1], req[2]);
+						if(response != null)
+							outMsg += " 200 " + response;		//200: OK
+						else
+							outMsg += " 401";					//401: Unauthorized
 						writer.println(outMsg);
-						writer.println(response);
+						writer.flush();
 					}
-				}
-				else if(req[0].compareTo("PUT") == 0) {
-					User tempUser = userTable.get(req[1]);
-					if(tempUser == null)
-						outMsg += " 401";
-					else {
-						if(tempUser.canWrite(req[2])) {
+					else if(req[0].compareTo("PING") == 0) {
+						//implement ??
+					}
+					else if(req[0].compareTo("GET") == 0) {
+						User tempUser = userTable.get(req[1]);
+						if(tempUser == null)
+							outMsg += " 401";
+						else {
+							String response = tempUser.getFile(req[2]);
+							response += "$$FILEEND$$";
 							outMsg += " 200";
 							writer.println(outMsg);
-							String buffer, content = null;
-							while((buffer = reader.readLine()) != null) {
-								content += buffer + "\n";
-							}
-							tempUser.writeContent(req[2], content);
+							writer.println(response);
+							writer.flush();
 						}
+					}
+					else if(req[0].compareTo("PUT") == 0) {
+						User tempUser = userTable.get(req[1]);
+						if(tempUser == null)
+							outMsg += " 401";
 						else {
-							outMsg += " 403";
-							writer.println(outMsg);
+							if(tempUser.canWrite(req[2])) {
+								outMsg += " 200";
+								writer.println(outMsg);
+								String buffer, content = null;
+								while((buffer = reader.readLine()) != null) {
+									content += buffer + "\n";
+								}
+								tempUser.writeContent(req[2], content);
+							}
+							else {
+								outMsg += " 403";
+								writer.println(outMsg);
+								writer.flush();
+							}
+							
 						}
-						
+					}
+					else if(req[0].compareTo("LIST") == 0) {
+						//do stuff here
 					}
 				}
-				else if(req[0].compareTo("LIST") == 0) {
-					//do stuff here
-				}
-			} catch (IOException e) {
+			} catch(java.net.SocketException e) {
+				System.out.println("User " + this.clientUsername + " droped");
+			}catch (IOException e) {
 				e.printStackTrace();
 			}
-			
+			System.out.println("end of thread");
 		}
-		
 	}
 	public void init() {
 		createFS();
@@ -148,7 +155,7 @@ public class Server {
 		while(true) {
 			try {
 				Socket clientSocket = listenSocket.accept();
-				
+				System.out.println("got a connnection @" + clientSocket.getRemoteSocketAddress());
 				Thread clientHandlerThread = new Thread(new ClientHandler(clientSocket));
 				clientHandlerThread.start();
 			} catch (IOException e) {

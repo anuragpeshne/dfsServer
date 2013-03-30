@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
@@ -56,14 +57,22 @@ public class User {
 		return this.username;
 	}
 	public static String hashIt(String input) {
-		byte[] hash = null;
+		MessageDigest m = null;
 		try {
-			MessageDigest md = MessageDigest.getInstance("MD5");
-			hash = md.digest(input.getBytes());
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
+			m = MessageDigest.getInstance("MD5");
+		} catch (NoSuchAlgorithmException e1) {
+			e1.printStackTrace();
 		}
-		return hash.toString();
+		m.reset();
+		m.update(input.getBytes());
+		byte[] digest = m.digest();
+		BigInteger bigInt = new BigInteger(1,digest);
+		String hashtext = bigInt.toString(16);
+		// Now we need to zero pad it if you actually want the full 32 chars.
+		while(hashtext.length() < 32 ){
+		  hashtext = "0"+hashtext;
+		}
+		return hashtext;
 	}
 	public static User addUser(String username, String pswd) {
 		User retUser = null;
