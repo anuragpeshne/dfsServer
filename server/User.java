@@ -103,4 +103,46 @@ public class User {
 			e.printStackTrace();
 		}
 	}
+
+	public String getFile(String filename) {
+		String response = null;
+		Integer perm = this.concernedFiles.get(filename);
+		if(perm != null && perm > 0) {
+			try {
+				DFile requestedFile = new DFile(filename, "r");
+				response += requestedFile.readLine() + "\n";
+				requestedFile.close();
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		else
+			response = "403";
+		return response;
+	}
+
+	public boolean canWrite(String filename) {
+		if(this.concernedFiles.get(filename) >= 6) {			//either can write or is owner
+			return true;
+		}
+		else
+			return false;
+	}
+
+	public void writeContent(String filename, String content) {
+		try {
+			File tF = new File(DFile.filesRoot + filename);
+			if(tF.exists())
+				tF.delete();
+			DFile targetFile = new DFile(tF, "rw");
+			targetFile.writeBytes(content);
+			targetFile.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} 
+	}
 }

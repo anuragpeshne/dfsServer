@@ -47,24 +47,54 @@ public class Server {
 			try {
 				inMsg = reader.readLine();
 				String[] req = inMsg.split(" "); 
+				outMsg = req[0];
 				if(req[0].compareTo("CONNECT") == 0) {
-					outMsg = req[0];
 					String response = Server.this.authenticateUser(req[1], req[2]);
 					if(response != null)
 						outMsg += " 200 " + response;		//200: OK
 					else
 						outMsg += " 401";					//401: Unauthorized
+					writer.println(outMsg);
 				}
 				else if(req[0].compareTo("PING") == 0) {
 					//implement ??
 				}
 				else if(req[0].compareTo("GET") == 0) {
-					
+					User tempUser = userTable.get(req[1]);
+					if(tempUser == null)
+						outMsg += " 401";
+					else {
+						String response = tempUser.getFile(req[2]);
+						response += "$$FILEEND$$";
+						outMsg += " 200";
+						writer.println(outMsg);
+						writer.println(response);
+					}
 				}
 				else if(req[0].compareTo("PUT") == 0) {
-					
+					User tempUser = userTable.get(req[1]);
+					if(tempUser == null)
+						outMsg += " 401";
+					else {
+						if(tempUser.canWrite(req[2])) {
+							outMsg += " 200";
+							writer.println(outMsg);
+							String buffer, content = null;
+							while((buffer = reader.readLine()) != null) {
+								content += buffer + "\n";
+							}
+							tempUser.writeContent(req[2], content);
+						}
+						else {
+							outMsg += " 403";
+							writer.println(outMsg);
+						}
+						
+					}
 				}
-				writer.println(outMsg);
+				else if(req[0].compareTo("LIST") == 0) {
+					//do stuff here
+				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

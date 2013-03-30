@@ -1,8 +1,8 @@
 Requests:
 CONNECT username password			//Authenticate -> Add entry to Server Table -> return TOKEN
 PING								//Heart beat to keep itself in table (table is LRU)
-GET filename TOKEN
-PUT filename TOKEN
+GET TOKEN filename
+PUT TOKEN filename
 
 Response:
 200								//OK

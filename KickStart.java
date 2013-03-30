@@ -8,8 +8,7 @@ public class KickStart {
 	public static void main(String[] args) {
 		Server server = new Server();
 		server.init();
-		Thread serverDaemon = new Thread(server);
-		serverDaemon.start();
+		server.start();
 		
 		/*DFSClient testerClient = new DFSClient();
 		Thread client = new Thread(testerClient);
