@@ -9,8 +9,11 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 
 public class Server {
@@ -24,11 +27,17 @@ public class Server {
 		        return size() > userTableSize;
 		     }
 	};
+	private Map<User, PrintWriter> writerMap;
 	public static void main(String[] args) {
 		Server server = new Server();
 		server.init();
 		server.start();
 	}
+	
+	public Server() {
+		this.writerMap = new HashMap<User, PrintWriter>();
+	}
+	
 	public class ClientHandler implements Runnable{
 		BufferedReader reader;
 		PrintWriter writer;
@@ -55,7 +64,7 @@ public class Server {
 					outMsg = req[0];
 					if(req[0].compareTo("CONNECT") == 0) {
 						this.clientUsername = req[1];
-						String response = Server.this.authenticateUser(req[1], req[2]);
+						String response = this.authenticateUser(req[1], req[2]);
 						if(response != null)
 							outMsg += " 200 " + response;		//200: OK
 						else
@@ -103,6 +112,7 @@ public class Server {
 								PermManager.addPermission(req[2], tempUser.getUsername(), perm);
 								tempUser.addPermission(req[2], perm);
 								tempUser.writeToDisk();
+								callBack(req[2]);
 								writer.println("200");
 								writer.flush();
 							}
@@ -144,6 +154,20 @@ public class Server {
 							writer.flush();
 						}
 					}
+					else if(req[0].compareTo("PERMIT") == 0) {
+						User tempUser =  userTable.get(req[1]);
+						if(tempUser == null) {
+							outMsg += " 401";
+							writer.println(outMsg);
+							writer.flush();
+						}
+						else {
+							String response = tempUser.changePermission(req[2],req[3],req[4]);
+							outMsg += " " + response;
+							writer.println(outMsg);
+							writer.flush();
+						}
+					}
 					else {
 						System.out.println("Unknown req:" + req);
 						writer.println(outMsg);
@@ -157,23 +181,24 @@ public class Server {
 			}
 			System.out.println(this.clientUsername + " disconnected");
 		}
+		
+		private String authenticateUser(String username, String pswdHash) {
+			String token = null;
+			User authenticatedUser = User.authenticate(username, pswdHash);
+			if(authenticatedUser != null) {
+				Date d = new Date();
+				String tokenIp = d.toString() + username;
+				token = User.hashIt(tokenIp);
+				Server.userTable.put(token, authenticatedUser);
+				writerMap.put(authenticatedUser, writer);
+			}
+			return token;
+		}
 	}
 	public void init() {
 		createFS();
 	}
 	
-
-	private String authenticateUser(String username, String pswdHash) {
-		String token = null;
-		User authenticatedUser = User.authenticate(username, pswdHash);
-		if(authenticatedUser != null) {
-			Date d = new Date();
-			String tokenIp = d.toString() + username;
-			token = User.hashIt(tokenIp);
-			Server.userTable.put(token, authenticatedUser);
-		}
-		return token;
-	}
 
 
 	private void createFS() {
@@ -227,5 +252,17 @@ public class Server {
 		}
 		rootUser.addPermission("testing.txt", 7);
 		rootUser.writeToDisk();
+	}
+	
+	private void callBack(String filename) {
+		Iterator<Entry<String, User>> navi = Server.userTable.entrySet().iterator();
+		while(navi.hasNext()) {
+			Map.Entry<String, User> pairs = (Map.Entry<String, User>)navi.next();
+	        User tempUser = pairs.getValue();
+	        if(tempUser.isConcerned(filename)) {
+	        	PrintWriter wr = writerMap.get(tempUser);
+	        	wr.println("UPDATED " + filename);
+	        }
+		}
 	}
 }

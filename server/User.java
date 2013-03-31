@@ -53,6 +53,20 @@ public class User {
 			e.printStackTrace();
 		}
 	}
+	private User getUser(String username) {
+		File userF = new File(Server.serverRoot + "Users/" + username);
+		User tempUser = null;
+		try {
+			RandomAccessFile userRF = new RandomAccessFile(userF, "r");
+			String hash = userRF.readLine();
+			tempUser = new User(username, hash, userRF);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return tempUser;
+	}
 	public String getUsername() {
 		return this.username;
 	}
@@ -181,5 +195,26 @@ public class User {
 			permFile.delete();
 		this.concernedFiles.remove(filename);
 		this.writeToDisk();
+	}
+
+	public boolean isConcerned(String filename) {
+		if(this.concernedFiles.containsKey(filename))
+			return true;
+		else
+			return false;
+	}
+	public String changePermission(String filename, String targetUsername, String perms) {
+		String retStr = "403";
+		int perm = Integer.parseInt(perms);
+		if(this.concernedFiles.get(filename) == 7) {
+			User targetUser = getUser(targetUsername);
+			if(targetUser != null) {
+				targetUser.concernedFiles.put(filename, perm);
+				targetUser.writeToDisk();
+				PermManager.addPermission(filename, targetUsername, perm);
+				retStr = "200";
+			}
+		}
+		return retStr;
 	}
 }
