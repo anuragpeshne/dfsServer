@@ -112,7 +112,7 @@ public class Server {
 								PermManager.addPermission(req[2], tempUser.getUsername(), perm);
 								tempUser.addPermission(req[2], perm);
 								tempUser.writeToDisk();
-								callBack(req[2]);
+								callBack(req[2], tempUser);
 								writer.println("200");
 								writer.flush();
 							}
@@ -164,6 +164,23 @@ public class Server {
 						else {
 							String response = tempUser.changePermission(req[2],req[3],req[4]);
 							outMsg += " " + response;
+							writer.println(outMsg);
+							writer.flush();
+						}
+					}
+					else if(req[0].compareTo("ADD_USER") == 0) {
+						User tempUser =  userTable.get(req[1]);
+						if(tempUser == null) {
+							outMsg += " 401";
+							writer.println(outMsg);
+							writer.flush();
+						}
+						else {
+							User newUser = User.addUser(req[2],req[3]);
+							if(newUser != null)
+								outMsg += " 200";
+							else
+								outMsg += " user_exists";
 							writer.println(outMsg);
 							writer.flush();
 						}
@@ -254,12 +271,12 @@ public class Server {
 		rootUser.writeToDisk();
 	}
 	
-	private void callBack(String filename) {
+	private void callBack(String filename, User xcptUser) {
 		Iterator<Entry<String, User>> navi = Server.userTable.entrySet().iterator();
 		while(navi.hasNext()) {
 			Map.Entry<String, User> pairs = (Map.Entry<String, User>)navi.next();
 	        User tempUser = pairs.getValue();
-	        if(tempUser.isConcerned(filename)) {
+	        if(tempUser.getUsername().compareTo(xcptUser.getUsername()) != 0 && tempUser.isConcerned(filename)) {
 	        	PrintWriter wr = writerMap.get(tempUser);
 	        	wr.println("UPDATED " + filename);
 	        }

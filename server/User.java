@@ -206,7 +206,7 @@ public class User {
 	public String changePermission(String filename, String targetUsername, String perms) {
 		String retStr = "403";
 		int perm = Integer.parseInt(perms);
-		if(this.concernedFiles.get(filename) == 7) {
+		if(this.concernedFiles.containsKey(filename) && this.concernedFiles.get(filename) == 7) {
 			User targetUser = getUser(targetUsername);
 			if(targetUser != null) {
 				targetUser.concernedFiles.put(filename, perm);
