@@ -93,11 +93,15 @@ public class User {
 	public void addPermission(String fileName, int perm) {
 		this.concernedFiles.put(fileName, perm);
 		PermManager.addPermission(fileName, this.username, perm);
+		this.writeToDisk();
+	}
+	public Integer getPermission(String filename) {
+		return this.concernedFiles.get(filename);
 	}
 	public void writeToDisk() {
-		File userFOld = new File(Server.serverRoot + "Users/" + this.username);
-		userFOld.delete();
 		File userF = new File(Server.serverRoot + "Users/" + this.username);
+		if(userF.exists())
+			userF.delete();
 		try {
 			userF.createNewFile();
 			RandomAccessFile userRF = new RandomAccessFile(userF, "rw");
@@ -135,7 +139,7 @@ public class User {
 	}
 
 	public boolean canWrite(String filename) {
-		if(this.concernedFiles.get(filename) >= 6) {			//either can write or is owner
+		if(this.concernedFiles.get(filename) == null || this.concernedFiles.get(filename) >= 6) {	//either can write or is owner or new file is created
 			return true;
 		}
 		else
@@ -166,5 +170,16 @@ public class User {
 	        	list += pairs.getKey() + ",";
 	    }
 		return list;
+	}
+
+	public void deleteFile(String filename) {
+		File filesFile = new File(DFile.filesRoot + filename);
+		if(filesFile.exists())
+			filesFile.delete();
+		File permFile = new File(PermManager.permRoot + filename);
+		if(permFile.exists())
+			permFile.delete();
+		this.concernedFiles.remove(filename);
+		this.writeToDisk();
 	}
 }

@@ -24,6 +24,11 @@ public class Server {
 		        return size() > userTableSize;
 		     }
 	};
+	public static void main(String[] args) {
+		Server server = new Server();
+		server.init();
+		server.start();
+	}
 	public class ClientHandler implements Runnable{
 		BufferedReader reader;
 		PrintWriter writer;
@@ -35,7 +40,6 @@ public class Server {
 			try {
 				InputStreamReader isReader = new InputStreamReader(sock.getInputStream());
 				reader = new BufferedReader(isReader);
-				
 				writer = new PrintWriter(sock.getOutputStream());
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -87,11 +91,20 @@ public class Server {
 							if(tempUser.canWrite(req[2])) {
 								outMsg += " 200";
 								writer.println(outMsg);
-								String buffer, content = null;
-								while((buffer = reader.readLine()) != null) {
+								writer.flush();
+								String buffer, content = "";
+								while((buffer = reader.readLine()).compareTo("$$EOF$$") != 0) {
 									content += buffer + "\n";
 								}
 								tempUser.writeContent(req[2], content);
+								Integer perm = tempUser.getPermission(req[2]);
+								if(perm == null)
+									perm = 7;
+								PermManager.addPermission(req[2], tempUser.getUsername(), perm);
+								tempUser.addPermission(req[2], perm);
+								tempUser.writeToDisk();
+								writer.println("200");
+								writer.flush();
 							}
 							else {
 								outMsg += " 403";
@@ -118,6 +131,19 @@ public class Server {
 							writer.flush();
 						}
 					}
+					else if(req[0].compareTo("DEL") == 0) {
+						User tempUser =  userTable.get(req[1]);
+						if(tempUser == null) {
+							outMsg += " 401";
+							writer.println(outMsg);
+							writer.flush();
+						}
+						else {
+							tempUser.deleteFile(req[2]);
+							writer.println(req[0] + " 200");
+							writer.flush();
+						}
+					}
 					else {
 						System.out.println("Unknown req:" + req);
 						writer.println(outMsg);
@@ -129,7 +155,7 @@ public class Server {
 			}catch (IOException e) {
 				e.printStackTrace();
 			}
-			System.out.println("end of thread");
+			System.out.println(this.clientUsername + " disconnected");
 		}
 	}
 	public void init() {

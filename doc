@@ -3,6 +3,7 @@ CONNECT username password			//Authenticate -> Add entry to Server Table -> retur
 PING								//Heart beat to keep itself in table (table is LRU)
 GET TOKEN filename
 PUT TOKEN filename
+DEL TOKEN filename
 
 Response:
 200								//OK
