@@ -68,17 +68,21 @@ public class Server {
 							outMsg += " 401";
 						else {
 							String response = tempUser.getFile(req[2]);
-							response += "$$FILEEND$$";
+							response += "$$EOF$$";
 							outMsg += " 200";
 							writer.println(outMsg);
+							writer.flush();
 							writer.println(response);
 							writer.flush();
 						}
 					}
 					else if(req[0].compareTo("PUT") == 0) {
 						User tempUser = userTable.get(req[1]);
-						if(tempUser == null)
+						if(tempUser == null) {
 							outMsg += " 401";
+							writer.println(outMsg);
+							writer.flush();
+						}
 						else {
 							if(tempUser.canWrite(req[2])) {
 								outMsg += " 200";
@@ -98,7 +102,26 @@ public class Server {
 						}
 					}
 					else if(req[0].compareTo("LIST") == 0) {
-						//do stuff here
+						User tempUser =  userTable.get(req[1]);
+						if(tempUser == null) {
+							outMsg += " 401";
+							writer.println(outMsg);
+							writer.flush();
+						}
+						else {
+							String list = tempUser.listDirectory(req[2]);
+							outMsg += " 200";
+							writer.println(outMsg);
+							writer.flush();
+							writer.println(list);
+							writer.println("$$EOF$$");
+							writer.flush();
+						}
+					}
+					else {
+						System.out.println("Unknown req:" + req);
+						writer.println(outMsg);
+						writer.flush();
 					}
 				}
 			} catch(java.net.SocketException e) {

@@ -114,12 +114,14 @@ public class User {
 	}
 
 	public String getFile(String filename) {
-		String response = null;
+		String response = "";
 		Integer perm = this.concernedFiles.get(filename);
 		if(perm != null && perm > 0) {
 			try {
 				DFile requestedFile = new DFile(filename, "r");
-				response += requestedFile.readLine() + "\n";
+				String buffer;
+				while((buffer = requestedFile.readLine()) != null)
+					response += buffer + "\n";
 				requestedFile.close();
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
@@ -153,5 +155,16 @@ public class User {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} 
+	}
+
+	public String listDirectory(String dirName) {
+		String list = "";
+		Iterator<Entry<String, Integer>> it = this.concernedFiles.entrySet().iterator();
+	    while (it.hasNext()) {
+	        Map.Entry<String, Integer> pairs = (Map.Entry<String, Integer>)it.next();
+	        if(pairs.getValue() > 0)
+	        	list += pairs.getKey() + ",";
+	    }
+		return list;
 	}
 }
