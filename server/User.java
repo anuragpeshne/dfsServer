@@ -187,12 +187,15 @@ public class User {
 	}
 
 	public void deleteFile(String filename) {
-		File filesFile = new File(DFile.filesRoot + filename);
-		if(filesFile.exists())
-			filesFile.delete();
-		File permFile = new File(PermManager.permRoot + filename);
-		if(permFile.exists())
-			permFile.delete();
+		if(this.concernedFiles.get(filename) == 7) {
+			File filesFile = new File(DFile.filesRoot + filename);
+			if(filesFile.exists())
+				filesFile.delete();
+			File permFile = new File(PermManager.permRoot + filename);
+			if(permFile.exists())
+				permFile.delete();
+		}
+		PermManager.revokePermission(filename, this.getUsername());
 		this.concernedFiles.remove(filename);
 		this.writeToDisk();
 	}
