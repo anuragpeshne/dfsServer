@@ -195,7 +195,8 @@ public class User {
 			if(permFile.exists())
 				permFile.delete();
 		}
-		PermManager.revokePermission(filename, this.getUsername());
+		else
+			PermManager.revokePermission(filename, this.getUsername());
 		this.concernedFiles.remove(filename);
 		this.writeToDisk();
 	}
